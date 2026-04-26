@@ -9,7 +9,7 @@ const IMPACTS = [
   },
   {
     id: "prototype",
-    number: "days",
+    number: "< 5 days",
     description:
       "Typical time from project kick-off to a working, testable prototype.",
   },
