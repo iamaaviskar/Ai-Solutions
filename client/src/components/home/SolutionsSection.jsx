@@ -35,20 +35,18 @@ export default function SolutionsSection() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid lg:grid-cols-3 gap-16 items-start">
           {/* Left */}
-          <div>
+          <div className="flex flex-col justify-between h-full">
             <SectionHeader
               label="What we do"
               title="AI built for every layer of your organisation."
               description="From intelligent assistants to rapid prototyping, every solution is built around one goal: making work better for your people."
-              action={
-                <Link
-                  to="/solutions"
-                  className="inline-flex items-center gap-1.5 text-sm font-semibold text-amber-600 hover:text-amber-500 transition-colors"
-                >
-                  View all solutions <ChevronRight size={15} />
-                </Link>
-              }
             />
+            <Link
+              to="/solutions"
+              className="inline-flex items-center gap-1.5 text-sm font-semibold text-amber-600 hover:text-amber-500 transition-colors mt-8"
+            >
+              View all solutions <ChevronRight size={15} />
+            </Link>
           </div>
 
           {/* Right */}
