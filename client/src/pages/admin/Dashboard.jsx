@@ -1,57 +1,93 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
 import {
-  Inbox, Search, LogOut, Mail, Phone,
-  Building2, MapPin, Briefcase, Loader2,
+  Inbox,
+  Search,
+  LogOut,
+  Mail,
+  Phone,
+  Building2,
+  MapPin,
+  Briefcase,
+  Loader2,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import api from "../../services/api";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "../../context/AuthContext";
 
 const STATUS_OPTIONS = ["new", "reviewed", "responded"];
+const PAGE_LIMIT = 20;
 
 const STATUS_STYLES = {
-  new:       "bg-amber-50 text-amber-700 border-amber-200",
-  reviewed:  "bg-slate-100 text-slate-700 border-slate-200",
+  new: "bg-amber-50 text-amber-700 border-amber-200",
+  reviewed: "bg-slate-100 text-slate-700 border-slate-200",
   responded: "bg-emerald-50 text-emerald-800 border-emerald-200",
 };
 
 export default function AdminDashboard() {
   const { admin, logout } = useAuth();
   const [inquiries, setInquiries] = useState([]);
-  const [loading, setLoading]   = useState(true);
-  const [error, setError]       = useState("");
-  const [search, setSearch]     = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
-  const [stats, setStats]       = useState(null);
+  const [stats, setStats] = useState(null);
   const [updatingId, setUpdatingId] = useState(null);
   const [expanded, setExpanded] = useState(null);
+  const [page, setPage] = useState(1);
+  const [pagination, setPagination] = useState(null);
 
-  const load = async () => {
-    setLoading(true);
-    setError("");
-    try {
-      const [list, st] = await Promise.all([
-        api.get("/admin/inquiries", { params: { search, status: statusFilter, limit: 100 } }),
-        api.get("/admin/stats"),
-      ]);
-      setInquiries(list.data.inquiries);
-      setStats(st.data);
-    } catch (err) {
-      setError(err.response?.data?.error || "Unable to load inquiries.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  // Fetch stats once on mount — they don't need to refresh on every filter change
   useEffect(() => {
-    load();
+    api
+      .get("/admin/stats")
+      .then((res) => setStats(res.data))
+      .catch(() => {});
+  }, []);
+
+  const loadInquiries = useCallback(
+    async (currentPage = 1) => {
+      setLoading(true);
+      setError("");
+      try {
+        const res = await api.get("/admin/inquiries", {
+          params: {
+            search,
+            status: statusFilter,
+            limit: PAGE_LIMIT,
+            page: currentPage,
+          },
+        });
+        setInquiries(res.data.inquiries);
+        setPagination(res.data.pagination);
+        setExpanded(null);
+      } catch (err) {
+        setError(err.response?.data?.error || "Unable to load enquiries.");
+      } finally {
+        setLoading(false);
+      }
+    },
+    [search, statusFilter],
+  );
+
+  // Re-fetch when filter changes, reset to page 1
+  useEffect(() => {
+    setPage(1);
+    loadInquiries(1);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [statusFilter]);
 
   const onSearchSubmit = (e) => {
     e.preventDefault();
-    load();
+    setPage(1);
+    loadInquiries(1);
+  };
+
+  const goToPage = (newPage) => {
+    setPage(newPage);
+    loadInquiries(newPage);
   };
 
   const updateStatus = async (id, newStatus) => {
@@ -59,7 +95,7 @@ export default function AdminDashboard() {
     try {
       await api.patch(`/admin/inquiries/${id}/status`, { status: newStatus });
       setInquiries((prev) =>
-        prev.map((i) => (i.id === id ? { ...i, status: newStatus } : i))
+        prev.map((i) => (i.id === id ? { ...i, status: newStatus } : i)),
       );
     } catch {
       setError("Failed to update status.");
@@ -69,7 +105,7 @@ export default function AdminDashboard() {
   };
 
   const statusCount = (s) =>
-    stats?.byStatus?.find((x) => x.status === s)?.count ?? 0;
+    stats?.byStatus?.find((x) => x.status === s)?.count ?? "—";
 
   return (
     <div className="min-h-screen bg-[#FAFAF7]">
@@ -81,12 +117,19 @@ export default function AdminDashboard() {
               <Inbox size={18} />
             </div>
             <div>
-              <h1 className="text-sm font-bold text-[#0C0C0C]">AI-Solutions Admin</h1>
-              <p className="text-xs text-slate-500">Signed in as {admin?.username}</p>
+              <h1 className="text-sm font-bold text-[#0C0C0C]">
+                AI-Solutions Admin
+              </h1>
+              <p className="text-xs text-slate-500">
+                Signed in as {admin?.username}
+              </p>
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Link to="/" className="text-sm text-slate-500 hover:text-[#0C0C0C] px-3 py-2 transition-colors">
+            <Link
+              to="/"
+              className="text-sm text-slate-500 hover:text-[#0C0C0C] px-3 py-2 transition-colors"
+            >
               View site
             </Link>
             <button
@@ -103,9 +146,17 @@ export default function AdminDashboard() {
         {/* Stat cards */}
         <div className="grid gap-4 sm:grid-cols-4">
           <StatCard label="Total enquiries" value={stats?.total ?? "—"} />
-          <StatCard label="New"       value={statusCount("new")}       highlight="amber" />
-          <StatCard label="Reviewed"  value={statusCount("reviewed")}  highlight="slate" />
-          <StatCard label="Responded" value={statusCount("responded")} highlight="emerald" />
+          <StatCard label="New" value={statusCount("new")} highlight="amber" />
+          <StatCard
+            label="Reviewed"
+            value={statusCount("reviewed")}
+            highlight="slate"
+          />
+          <StatCard
+            label="Responded"
+            value={statusCount("responded")}
+            highlight="emerald"
+          />
         </div>
 
         {/* Enquiries table */}
@@ -114,7 +165,10 @@ export default function AdminDashboard() {
           <div className="p-4 sm:p-6 flex flex-wrap gap-3 items-center justify-between border-b border-slate-100">
             <form onSubmit={onSearchSubmit} className="flex-1 min-w-60">
               <div className="relative">
-                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                <Search
+                  size={16}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+                />
                 <input
                   type="search"
                   value={search}
@@ -125,7 +179,11 @@ export default function AdminDashboard() {
               </div>
             </form>
             <div className="flex gap-1.5">
-              <FilterChip active={!statusFilter} onClick={() => setStatusFilter("")} label="All" />
+              <FilterChip
+                active={!statusFilter}
+                onClick={() => setStatusFilter("")}
+                label="All"
+              />
               {STATUS_OPTIONS.map((s) => (
                 <FilterChip
                   key={s}
@@ -140,7 +198,8 @@ export default function AdminDashboard() {
           {/* Body */}
           {loading ? (
             <div className="p-12 flex items-center justify-center text-slate-500">
-              <Loader2 size={20} className="animate-spin mr-2" /> Loading enquiries...
+              <Loader2 size={20} className="animate-spin mr-2" /> Loading
+              enquiries...
             </div>
           ) : error ? (
             <div className="p-12 text-center text-red-700">{error}</div>
@@ -149,61 +208,150 @@ export default function AdminDashboard() {
               No enquiries match your filters yet.
             </div>
           ) : (
-            <ul className="divide-y divide-slate-100">
-              {inquiries.map((i) => (
-                <li key={i.id} className="p-5 sm:p-6 hover:bg-[#FAFAF7] transition-colors">
-                  <button
-                    onClick={() => setExpanded(expanded === i.id ? null : i.id)}
-                    className="w-full text-left"
+            <>
+              <ul className="divide-y divide-slate-100">
+                {inquiries.map((i) => (
+                  <li
+                    key={i.id}
+                    className="p-5 sm:p-6 hover:bg-[#FAFAF7] transition-colors"
                   >
-                    <div className="flex flex-wrap items-baseline justify-between gap-3">
-                      <div>
-                        <p className="font-semibold text-[#0C0C0C]">
-                          {i.name}
-                          <span className="ml-2 font-normal text-slate-500">{i.company_name}</span>
-                        </p>
-                        <p className="mt-0.5 text-sm text-slate-500">
-                          {new Date(i.created_at).toLocaleString()}
-                        </p>
+                    <button
+                      onClick={() =>
+                        setExpanded(expanded === i.id ? null : i.id)
+                      }
+                      className="w-full text-left"
+                    >
+                      <div className="flex flex-wrap items-baseline justify-between gap-3">
+                        <div>
+                          <p className="font-semibold text-[#0C0C0C]">
+                            {i.name}
+                            <span className="ml-2 font-normal text-slate-500">
+                              {i.company_name}
+                            </span>
+                          </p>
+                          <p className="mt-0.5 text-sm text-slate-500">
+                            {new Date(i.created_at).toLocaleString()}
+                          </p>
+                        </div>
+                        <Badge
+                          variant="outline"
+                          className={`text-xs font-medium ${STATUS_STYLES[i.status] || ""}`}
+                        >
+                          {i.status}
+                        </Badge>
                       </div>
-                      <Badge variant="outline" className={`text-xs font-medium ${STATUS_STYLES[i.status] || ""}`}>
-                        {i.status}
-                      </Badge>
-                    </div>
-                  </button>
+                    </button>
 
-                  {expanded === i.id && (
-                    <div className="mt-4 grid gap-4 sm:grid-cols-2 text-sm pt-4 border-t border-slate-100">
-                      <Field icon={Mail}      label="Email"   value={i.email} />
-                      <Field icon={Phone}     label="Phone"   value={i.phone} />
-                      <Field icon={Building2} label="Company" value={i.company_name} />
-                      <Field icon={MapPin}    label="Country" value={i.country} />
-                      <Field icon={Briefcase} label="Job title" value={i.job_title} />
-                      <div className="sm:col-span-2">
-                        <p className="text-xs uppercase tracking-wide text-slate-500 mb-1">Project details</p>
-                        <p className="whitespace-pre-line text-slate-800 leading-relaxed">{i.job_details}</p>
+                    {expanded === i.id && (
+                      <div className="mt-4 grid gap-4 sm:grid-cols-2 text-sm pt-4 border-t border-slate-100">
+                        <Field icon={Mail} label="Email" value={i.email} />
+                        <Field icon={Phone} label="Phone" value={i.phone} />
+                        <Field
+                          icon={Building2}
+                          label="Company"
+                          value={i.company_name}
+                        />
+                        <Field
+                          icon={MapPin}
+                          label="Country"
+                          value={i.country}
+                        />
+                        <Field
+                          icon={Briefcase}
+                          label="Job title"
+                          value={i.job_title}
+                        />
+                        <div className="sm:col-span-2">
+                          <p className="text-xs uppercase tracking-wide text-slate-500 mb-1">
+                            Project details
+                          </p>
+                          <p className="whitespace-pre-line text-slate-800 leading-relaxed">
+                            {i.job_details}
+                          </p>
+                        </div>
+                        <div className="sm:col-span-2 flex gap-2 pt-2">
+                          {STATUS_OPTIONS.map((s) => (
+                            <button
+                              key={s}
+                              disabled={updatingId === i.id || i.status === s}
+                              onClick={() => updateStatus(i.id, s)}
+                              className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
+                                i.status === s
+                                  ? "bg-slate-100 text-slate-400 border-slate-200 cursor-default"
+                                  : "bg-white text-slate-700 border-slate-300 hover:border-amber-500 hover:text-amber-600"
+                              }`}
+                            >
+                              Mark {s}
+                            </button>
+                          ))}
+                        </div>
                       </div>
-                      <div className="sm:col-span-2 flex gap-2 pt-2">
-                        {STATUS_OPTIONS.map((s) => (
+                    )}
+                  </li>
+                ))}
+              </ul>
+
+              {/* Pagination */}
+              {pagination && pagination.pages > 1 && (
+                <div className="px-6 py-4 border-t border-slate-100 flex items-center justify-between">
+                  <p className="text-sm text-slate-500">
+                    Showing {(page - 1) * PAGE_LIMIT + 1}–
+                    {Math.min(page * PAGE_LIMIT, pagination.total)} of{" "}
+                    {pagination.total}
+                  </p>
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => goToPage(page - 1)}
+                      disabled={page === 1}
+                      className="p-1.5 rounded-lg text-slate-500 hover:bg-slate-100 disabled:opacity-30 disabled:cursor-default transition-colors"
+                    >
+                      <ChevronLeft size={16} />
+                    </button>
+                    {Array.from({ length: pagination.pages }, (_, i) => i + 1)
+                      .filter(
+                        (p) =>
+                          p === 1 ||
+                          p === pagination.pages ||
+                          Math.abs(p - page) <= 1,
+                      )
+                      .reduce((acc, p, idx, arr) => {
+                        if (idx > 0 && p - arr[idx - 1] > 1) acc.push("...");
+                        acc.push(p);
+                        return acc;
+                      }, [])
+                      .map((p, idx) =>
+                        p === "..." ? (
+                          <span
+                            key={`ellipsis-${idx}`}
+                            className="px-2 text-slate-400 text-sm"
+                          >
+                            …
+                          </span>
+                        ) : (
                           <button
-                            key={s}
-                            disabled={updatingId === i.id || i.status === s}
-                            onClick={() => updateStatus(i.id, s)}
-                            className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
-                              i.status === s
-                                ? "bg-slate-100 text-slate-400 border-slate-200 cursor-default"
-                                : "bg-white text-slate-700 border-slate-300 hover:border-amber-500 hover:text-amber-600"
+                            key={p}
+                            onClick={() => goToPage(p)}
+                            className={`w-8 h-8 rounded-lg text-sm font-medium transition-colors ${
+                              p === page
+                                ? "bg-amber-500 text-black"
+                                : "text-slate-600 hover:bg-slate-100"
                             }`}
                           >
-                            Mark {s}
+                            {p}
                           </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </li>
-              ))}
-            </ul>
+                        ),
+                      )}
+                    <button
+                      onClick={() => goToPage(page + 1)}
+                      disabled={page === pagination.pages}
+                      className="p-1.5 rounded-lg text-slate-500 hover:bg-slate-100 disabled:opacity-30 disabled:cursor-default transition-colors"
+                    >
+                      <ChevronRight size={16} />
+                    </button>
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </div>
       </main>
@@ -212,15 +360,18 @@ export default function AdminDashboard() {
 }
 
 function StatCard({ label, value, highlight }) {
-  const valueClass = {
-    amber:   "text-amber-600",
-    emerald: "text-emerald-700",
-    slate:   "text-slate-600",
-  }[highlight] || "text-[#0C0C0C]";
+  const valueClass =
+    {
+      amber: "text-amber-600",
+      emerald: "text-emerald-700",
+      slate: "text-slate-600",
+    }[highlight] || "text-[#0C0C0C]";
 
   return (
     <div className="rounded-xl bg-white border border-slate-200 p-5">
-      <p className="text-xs uppercase tracking-widest text-slate-500 mb-2">{label}</p>
+      <p className="text-xs uppercase tracking-widest text-slate-500 mb-2">
+        {label}
+      </p>
       <p className={`text-3xl font-bold ${valueClass}`}>{value}</p>
     </div>
   );
@@ -246,7 +397,9 @@ function Field({ icon: Icon, label, value }) {
     <div className="flex gap-2">
       <Icon size={16} className="text-amber-500 mt-0.5 shrink-0" />
       <div>
-        <p className="text-xs uppercase tracking-wide text-slate-500">{label}</p>
+        <p className="text-xs uppercase tracking-wide text-slate-500">
+          {label}
+        </p>
         <p className="text-slate-800">{value}</p>
       </div>
     </div>
