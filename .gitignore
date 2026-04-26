@@ -1,0 +1,16 @@
+# Dependencies
+node_modules/
+
+# Environment files — NEVER commit these
+.env
+*.env
+
+# Build output
+dist/
+dist-ssr/
+
+# OS / editor
+.DS_Store
+.vscode/*
+*.suo
+*.sw?
