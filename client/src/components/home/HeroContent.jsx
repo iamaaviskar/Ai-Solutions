@@ -23,7 +23,7 @@ export default function HeroContent() {
         <Button
           asChild
           size="lg"
-          className="bg-amber-500 hover:bg-amber-400 text-black gap-2"
+          className="bg-amber-500 hover:bg-amber-400! text-white gap-2"
         >
           <Link to="/contact">
             Start a conversation <ArrowRight size={16} />
