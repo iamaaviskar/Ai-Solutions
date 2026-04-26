@@ -92,8 +92,8 @@ router.get("/inquiries", requireAuth, async (req, res) => {
   const status = req.query.status || "";
 
   try {
-    let whereClauses = [];
-    let params = [];
+    const whereClauses = [];
+    const params = [];
     let paramIdx = 1;
 
     if (search) {
@@ -116,14 +116,12 @@ router.get("/inquiries", requireAuth, async (req, res) => {
       ? `WHERE ${whereClauses.join(" AND ")}`
       : "";
 
-    const countResult = await pool.query(
-      `SELECT COUNT(*) FROM contacts ${where}`,
-      params,
-    );
-    const total = parseInt(countResult.rows[0].count);
-
+    // Single query using window function. Avoids a separate COUNT round-trip
     const dataResult = await pool.query(
-      `SELECT id, name, email, phone, company_name, country, job_title, job_details, status, created_at
+      `SELECT
+         id, name, email, phone, company_name, country,
+         job_title, job_details, status, created_at,
+         COUNT(*) OVER() AS total_count
        FROM contacts
        ${where}
        ORDER BY created_at DESC
@@ -131,8 +129,14 @@ router.get("/inquiries", requireAuth, async (req, res) => {
       [...params, limit, offset],
     );
 
+    const total =
+      dataResult.rows.length > 0 ? parseInt(dataResult.rows[0].total_count) : 0;
+
+    // Strip total_count from the row objects before sending
+    const inquiries = dataResult.rows.map(({ total_count, ...rest }) => rest);
+
     return res.json({
-      inquiries: dataResult.rows,
+      inquiries,
       pagination: { page, limit, total, pages: Math.ceil(total / limit) },
     });
   } catch (err) {
