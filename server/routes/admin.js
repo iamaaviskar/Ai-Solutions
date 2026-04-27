@@ -12,7 +12,6 @@ const COOKIE_OPTS = {
   httpOnly: true,
   secure: process.env.NODE_ENV === "production",
   sameSite: "lax",
-  maxAge: 2 * 60 * 60 * 1000, // 2 h
 };
 
 // Rate-limit login attempts
