@@ -15,7 +15,14 @@ import Contact from "./pages/Contact";
 
 // Admin pages
 import AdminLogin from "./pages/admin/Login";
+import AdminLayout from "./pages/admin/AdminLayout";
 import AdminDashboard from "./pages/admin/Dashboard";
+import AdminInquiries from "./pages/admin/Inquiries";
+
+// Placeholder pages (to be built in later steps)
+import AdminQueries from "./pages/admin/Queries";
+import AdminArticles from "./pages/admin/AdminArticles";
+import AdminGallery from "./pages/admin/AdminGallery";
 
 export default function App() {
   return (
@@ -34,10 +41,18 @@ export default function App() {
             <Route path="contact" element={<Contact />} />
           </Route>
 
-          {/* ── Admin (no public layout) */}
+          {/* ── Admin login (no layout) */}
           <Route path="admin/login" element={<AdminLogin />} />
+
+          {/* ── Admin (sidebar layout, protected) */}
           <Route element={<ProtectedRoute />}>
-            <Route path="admin/dashboard" element={<AdminDashboard />} />
+            <Route element={<AdminLayout />}>
+              <Route path="admin/dashboard" element={<AdminDashboard />} />
+              <Route path="admin/inquiries" element={<AdminInquiries />} />
+              <Route path="admin/queries" element={<AdminQueries />} />
+              <Route path="admin/articles" element={<AdminArticles />} />
+              <Route path="admin/gallery" element={<AdminGallery />} />
+            </Route>
           </Route>
         </Routes>
       </BrowserRouter>

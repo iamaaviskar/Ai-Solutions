@@ -4,9 +4,9 @@ import { Link } from "react-router-dom";
 import api from "../services/api";
 
 const SUGGESTED_PROMPTS = [
-  "What services do you offer?",
-  "How does your AI assistant work?",
-  "How quickly can you deliver a prototype?",
+  "How would this assistant work for my team?",
+  "Can this handle IT helpdesk queries?",
+  "How quickly could you deploy this for us?",
 ];
 
 function TypingIndicator() {
