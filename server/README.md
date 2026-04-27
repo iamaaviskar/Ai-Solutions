@@ -96,7 +96,7 @@ The frontend runs on **http://localhost:5173**.
 | POST   | `/api/contact`         | Submit contact enquiry        |
 | POST   | `/api/admin/login`     | Admin login                   |
 | POST   | `/api/admin/logout`    | Admin logout                  |
-| GET    | `/api/admin/inquiries` | Get all inquiries (protected) |
+| GET    | `/api/admin/enquiries` | Get all enquiries (protected) |
 | GET    | `/api/admin/stats`     | Get inquiry stats (protected) |
 
 ---

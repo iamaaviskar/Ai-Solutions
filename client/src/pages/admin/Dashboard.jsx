@@ -29,10 +29,10 @@ export default function AdminDashboard() {
       try {
         const [st, list] = await Promise.all([
           api.get("/admin/stats"),
-          api.get("/admin/inquiries", { params: { limit: 5 } }),
+          api.get("/admin/enquiries", { params: { limit: 5 } }),
         ]);
         setStats(st.data);
-        setRecent(list.data.inquiries);
+        setRecent(list.data.enquiries);
       } catch {
         setError("Failed to load dashboard data.");
       } finally {
@@ -128,7 +128,7 @@ export default function AdminDashboard() {
             Recent Enquiries
           </h2>
           <Link
-            to="/admin/inquiries"
+            to="/admin/enquiries"
             className="text-sm text-amber-600 hover:text-amber-700 font-medium flex items-center gap-1"
           >
             View all <ArrowRight size={14} />

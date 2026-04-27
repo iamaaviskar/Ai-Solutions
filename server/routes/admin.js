@@ -83,8 +83,8 @@ router.post("/logout", (req, res) => {
   return res.json({ message: "Logged out successfully." });
 });
 
-// GET /api/admin/inquiries — paginated list of all contact submissions
-router.get("/inquiries", requireAuth, async (req, res) => {
+// GET /api/admin/enquiries — paginated list of all contact submissions
+router.get("/enquiries", requireAuth, async (req, res) => {
   const page = Math.max(1, parseInt(req.query.page || "1"));
   const limit = Math.min(100, parseInt(req.query.limit || "20"));
   const offset = (page - 1) * limit;
@@ -133,15 +133,15 @@ router.get("/inquiries", requireAuth, async (req, res) => {
       dataResult.rows.length > 0 ? parseInt(dataResult.rows[0].total_count) : 0;
 
     // Strip total_count from the row objects before sending
-    const inquiries = dataResult.rows.map(({ total_count, ...rest }) => rest);
+    const enquiries = dataResult.rows.map(({ total_count, ...rest }) => rest);
 
     return res.json({
-      inquiries,
+      enquiries,
       pagination: { page, limit, total, pages: Math.ceil(total / limit) },
     });
   } catch (err) {
-    console.error("Inquiries fetch error:", err);
-    return res.status(500).json({ error: "Failed to fetch inquiries." });
+    console.error("Enquiries fetch error:", err);
+    return res.status(500).json({ error: "Failed to fetch enquiries." });
   }
 });
 
@@ -177,8 +177,8 @@ router.get("/stats", requireAuth, async (req, res) => {
   }
 });
 
-// PATCH /api/admin/inquiries/:id/status
-router.patch("/inquiries/:id/status", requireAuth, async (req, res) => {
+// PATCH /api/admin/enquiries/:id/status
+router.patch("/enquiries/:id/status", requireAuth, async (req, res) => {
   const { id } = req.params;
   const { status } = req.body;
 
@@ -193,9 +193,9 @@ router.patch("/inquiries/:id/status", requireAuth, async (req, res) => {
       [status, id],
     );
     if (!result.rows.length) {
-      return res.status(404).json({ error: "Inquiry not found." });
+      return res.status(404).json({ error: "Enquiry not found." });
     }
-    return res.json({ inquiry: result.rows[0] });
+    return res.json({ enquiry: result.rows[0] });
   } catch (err) {
     console.error("Status update error:", err);
     return res.status(500).json({ error: "Failed to update status." });

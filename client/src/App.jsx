@@ -17,7 +17,7 @@ import Contact from "./pages/Contact";
 import AdminLogin from "./pages/admin/Login";
 import AdminLayout from "./pages/admin/AdminLayout";
 import AdminDashboard from "./pages/admin/Dashboard";
-import AdminInquiries from "./pages/admin/Inquiries";
+import AdminInquiries from "./pages/admin/Enquiries";
 
 // Placeholder pages (to be built in later steps)
 import AdminQueries from "./pages/admin/Queries";
@@ -48,7 +48,7 @@ export default function App() {
           <Route element={<ProtectedRoute />}>
             <Route element={<AdminLayout />}>
               <Route path="admin/dashboard" element={<AdminDashboard />} />
-              <Route path="admin/inquiries" element={<AdminInquiries />} />
+              <Route path="admin/enquiries" element={<AdminInquiries />} />
               <Route path="admin/queries" element={<AdminQueries />} />
               <Route path="admin/articles" element={<AdminArticles />} />
               <Route path="admin/gallery" element={<AdminGallery />} />

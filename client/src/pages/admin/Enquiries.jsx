@@ -7,11 +7,14 @@ import {
   MapPin,
   Briefcase,
   Loader2,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import api from "../../services/api";
 
 const STATUS_OPTIONS = ["new", "reviewed", "responded"];
+const PAGE_LIMIT = 6;
 
 const STATUS_STYLES = {
   new: "bg-amber-50 text-amber-700 border-amber-200",
@@ -19,23 +22,27 @@ const STATUS_STYLES = {
   responded: "bg-emerald-50 text-emerald-800 border-emerald-200",
 };
 
-export default function AdminInquiries() {
-  const [inquiries, setInquiries] = useState([]);
+export default function AdminEnquiries() {
+  const [enquiries, setEnquiries] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [updatingId, setUpdatingId] = useState(null);
   const [expanded, setExpanded] = useState(null);
+  const [page, setPage] = useState(1);
+  const [pagination, setPagination] = useState(null);
 
-  const load = async () => {
+  const load = async (p = 1) => {
     setLoading(true);
     setError("");
     try {
-      const res = await api.get("/admin/inquiries", {
-        params: { search, status: statusFilter, limit: 100 },
+      const res = await api.get("/admin/enquiries", {
+        params: { search, status: statusFilter, limit: PAGE_LIMIT, page: p },
       });
-      setInquiries(res.data.inquiries);
+      setEnquiries(res.data.enquiries);
+      setPagination(res.data.pagination);
+      setExpanded(null);
     } catch {
       setError("Unable to load enquiries.");
     } finally {
@@ -44,19 +51,26 @@ export default function AdminInquiries() {
   };
 
   useEffect(() => {
-    load();
+    setPage(1);
+    load(1);
   }, [statusFilter]);
 
   const onSearchSubmit = (e) => {
     e.preventDefault();
-    load();
+    setPage(1);
+    load(1);
+  };
+
+  const goToPage = (p) => {
+    setPage(p);
+    load(p);
   };
 
   const updateStatus = async (id, newStatus) => {
     setUpdatingId(id);
     try {
-      await api.patch(`/admin/inquiries/${id}/status`, { status: newStatus });
-      setInquiries((prev) =>
+      await api.patch(`/admin/enquiries/${id}/status`, { status: newStatus });
+      setEnquiries((prev) =>
         prev.map((i) => (i.id === id ? { ...i, status: newStatus } : i)),
       );
     } catch {
@@ -118,13 +132,13 @@ export default function AdminInquiries() {
           </div>
         ) : error ? (
           <div className="p-12 text-center text-red-700">{error}</div>
-        ) : inquiries.length === 0 ? (
+        ) : enquiries.length === 0 ? (
           <div className="p-12 text-center text-slate-500">
             No enquiries match your filters.
           </div>
         ) : (
           <ul className="divide-y divide-slate-100">
-            {inquiries.map((i) => (
+            {enquiries.map((i) => (
               <li
                 key={i.id}
                 className="p-5 sm:p-6 hover:bg-[#FAFAF7] transition-colors"
@@ -198,6 +212,48 @@ export default function AdminInquiries() {
               </li>
             ))}
           </ul>
+        )}
+
+        {/* Pagination */}
+        {pagination && pagination.total > 0 && (
+          <div className="px-5 py-4 border-t border-slate-100 flex items-center justify-between">
+            <p className="text-xs text-slate-500">
+              Showing {(page - 1) * PAGE_LIMIT + 1}–
+              {Math.min(page * PAGE_LIMIT, pagination.total)} of{" "}
+              {pagination.total}
+            </p>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => goToPage(page - 1)}
+                disabled={page === 1}
+                className="p-1.5 rounded-lg text-slate-500 hover:bg-slate-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              >
+                <ChevronLeft size={16} />
+              </button>
+              {Array.from({ length: pagination.pages }, (_, i) => i + 1).map(
+                (p) => (
+                  <button
+                    key={p}
+                    onClick={() => goToPage(p)}
+                    className={`w-7 h-7 rounded-lg text-xs font-medium transition-colors ${
+                      p === page
+                        ? "bg-amber-500 text-black"
+                        : "text-slate-600 hover:bg-slate-100"
+                    }`}
+                  >
+                    {p}
+                  </button>
+                ),
+              )}
+              <button
+                onClick={() => goToPage(page + 1)}
+                disabled={page === pagination.pages}
+                className="p-1.5 rounded-lg text-slate-500 hover:bg-slate-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              >
+                <ChevronRight size={16} />
+              </button>
+            </div>
+          </div>
         )}
       </div>
     </div>
