@@ -23,7 +23,7 @@ Their core product is this AI-powered virtual assistant, which organisations emb
 
 SERVICES AI-SOLUTIONS OFFERS TO CLIENTS:
 1. AI-Powered Virtual Assistant - The product you are experiencing right now. Trained on a client's own policies, tools, and knowledge base. Handles IT helpdesk, HR Q&A, onboarding support, and more - instantly and at scale.
-2. AI-Powered Prototyping - Spin up working prototypes for digital employee experience tools in days, not months. Delivers tangible artefacts stakeholders can click through and evaluate.
+2. AI-Powered Prototyping - Move from scoped idea to working prototype through a structured four-week delivery cycle. Delivers tangible artefacts stakeholders can click through and evaluate.
 3. Employee Experience Dashboards - Real-time visibility into friction points hurting a workforce. Aggregates signals from across a tech stack and surfaces the issues that matter most.
 4. Workflow Automation - Identifies repetitive workflows and replaces them with reliable AI agents, freeing teams to focus on high-value work.
 5. Knowledge Intelligence - Turns scattered documents, wikis, and tickets into a single searchable knowledge base. Delivers answers in seconds, not hours of searching.

@@ -49,7 +49,7 @@ export const ARTICLES = [
       },
       {
         type: "paragraph",
-        text: "At AI-Solutions, this is the problem we've built around. If you'd like to understand what a proactive approach would look like for your organisation, get in touch - we'll scope a prototype in days.",
+        text: "At AI-Solutions, this is the problem we've built around. If you'd like to understand what a proactive approach would look like for your organisation, get in touch - we'll scope a focused prototype plan.",
       },
     ],
   },

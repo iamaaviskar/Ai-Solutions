@@ -9,9 +9,9 @@ const IMPACTS = [
   },
   {
     id: "prototype",
-    number: "< 5 days",
+    number: "4 weeks",
     description:
-      "Typical time from project kick-off to a working, testable prototype.",
+      "Typical delivery cycle from project kick-off to a working, testable prototype.",
   },
   {
     id: "tickets",

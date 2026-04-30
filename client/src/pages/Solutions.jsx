@@ -14,7 +14,7 @@ const SOLUTIONS = [
     icon: Sparkles,
     title: "AI-Powered Prototyping",
     description:
-      "Spin up working prototypes for digital employee experience tools in days, not months. Get tangible artifacts your stakeholders can actually click through.",
+      "Move from scoped idea to working prototype through a structured four-week delivery cycle. Get tangible artifacts your stakeholders can actually click through.",
   },
   {
     icon: LayoutDashboard,
@@ -94,7 +94,7 @@ export default function Solutions() {
             </h2>
             <p className="mt-4 text-blue-100 text-lg leading-relaxed">
               Tell us about it. We will scope a working prototype your team can
-              evaluate inside a couple of weeks.
+              evaluate through a focused four-week delivery cycle.
             </p>
             <Link
               to="/contact"
