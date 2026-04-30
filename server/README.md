@@ -156,14 +156,21 @@ The frontend runs on **http://localhost:5173**.
 | Route           | Description                        |
 | --------------- | ---------------------------------- |
 | `/`             | Home - hero, stats, features, USPs |
+| `/#testimonials` | Customer feedback with ratings    |
+| `/#events`      | Upcoming events section            |
 | `/solutions`    | Software solutions offered         |
 | `/case-studies` | Past industry solutions            |
-| `/testimonials` | Customer feedback & ratings        |
 | `/articles`     | Articles & company news            |
+| `/articles/:slug` | Individual article page          |
+| `/about`        | About the company                  |
 | `/gallery`      | Promotional event photos           |
-| `/events`       | Upcoming events                    |
 | `/contact`      | Contact Us form                    |
-| `/admin`        | Password-protected admin area      |
+| `/admin/login`  | Admin login                        |
+| `/admin/dashboard` | Password-protected admin dashboard |
+| `/admin/enquiries` | Contact enquiry management      |
+| `/admin/queries` | Chatbot query placeholder         |
+| `/admin/articles` | Article management               |
+| `/admin/gallery` | Gallery management placeholder    |
 
 ---
 
