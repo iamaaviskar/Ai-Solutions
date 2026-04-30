@@ -159,7 +159,7 @@ The frontend runs on **http://localhost:5173**.
 | `/solutions`    | Software solutions offered         |
 | `/case-studies` | Past industry solutions            |
 | `/testimonials` | Customer feedback & ratings        |
-| `/blog`         | Articles & company news            |
+| `/articles`     | Articles & company news            |
 | `/gallery`      | Promotional event photos           |
 | `/events`       | Upcoming events                    |
 | `/contact`      | Contact Us form                    |
