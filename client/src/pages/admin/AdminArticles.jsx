@@ -142,6 +142,11 @@ function ArticleForm({ article, onSave, onCancel }) {
     content: article?.body ?? "",
   });
 
+  useEffect(() => {
+    if (!editor) return;
+    editor.commands.setContent(article?.body ?? "");
+  }, [article?.id, article?.body, editor]);
+
   const set = (k, v) => setForm((p) => ({ ...p, [k]: v }));
 
   // Auto-generate slug from title unless manually edited
@@ -291,7 +296,7 @@ function ArticleForm({ article, onSave, onCancel }) {
               <Toolbar editor={editor} />
               <EditorContent
                 editor={editor}
-                className="px-4 py-3 min-h-70 text-sm text-slate-800 focus:outline-none [&_.ProseMirror]:outline-none [&_.ProseMirror]:text-inherit [&_.ProseMirror_h2]:text-lg [&_.ProseMirror_h2]:font-bold [&_.ProseMirror_h2]:mt-4 [&_.ProseMirror_h2]:mb-2 [&_.ProseMirror_h3]:text-base [&_.ProseMirror_h3]:font-bold [&_.ProseMirror_h3]:mt-3 [&_.ProseMirror_h3]:mb-2 [&_.ProseMirror_ul]:list-disc [&_.ProseMirror_ul]:ml-4 [&_.ProseMirror_ol]:list-decimal [&_.ProseMirror_ol]:ml-4 [&_.ProseMirror_li]:mb-1 [&_.ProseMirror_p.is-editor-empty:first-child::before]:text-slate-400 [&_.ProseMirror_p.is-editor-empty:first-child::before]:content-[attr(data-placeholder)] [&_.ProseMirror_p.is-editor-empty:first-child::before]:float-left [&_.ProseMirror_p.is-editor-empty:first-child::before]:pointer-events-none"
+                className="px-4 py-3 min-h-[280px] text-sm text-slate-800 focus:outline-none [&_.ProseMirror]:outline-none [&_.ProseMirror]:text-inherit [&_.ProseMirror_h2]:text-lg [&_.ProseMirror_h2]:font-bold [&_.ProseMirror_h2]:mt-4 [&_.ProseMirror_h2]:mb-2 [&_.ProseMirror_h3]:text-base [&_.ProseMirror_h3]:font-bold [&_.ProseMirror_h3]:mt-3 [&_.ProseMirror_h3]:mb-2 [&_.ProseMirror_ul]:list-disc [&_.ProseMirror_ul]:ml-4 [&_.ProseMirror_ol]:list-decimal [&_.ProseMirror_ol]:ml-4 [&_.ProseMirror_li]:mb-1 [&_.ProseMirror_p.is-editor-empty:first-child::before]:text-slate-400 [&_.ProseMirror_p.is-editor-empty:first-child::before]:content-[attr(data-placeholder)] [&_.ProseMirror_p.is-editor-empty:first-child::before]:float-left [&_.ProseMirror_p.is-editor-empty:first-child::before]:pointer-events-none"
               />
             </div>
           </div>
@@ -415,6 +420,7 @@ export default function AdminArticles() {
   const [error, setError] = useState("");
   const [view, setView] = useState("list"); // "list" | "create" | "edit"
   const [editing, setEditing] = useState(null);
+  const [loadingArticle, setLoadingArticle] = useState(null);
   const [deleting, setDeleting] = useState(null);
 
   const load = useCallback(async () => {
@@ -444,6 +450,20 @@ export default function AdminArticles() {
       setError("Failed to delete article.");
     } finally {
       setDeleting(null);
+    }
+  };
+
+  const handleEdit = async (id) => {
+    setLoadingArticle(id);
+    setError("");
+    try {
+      const res = await api.get(`/admin/articles/${id}`);
+      setEditing(res.data.article);
+      setView("edit");
+    } catch {
+      setError("Failed to load article for editing.");
+    } finally {
+      setLoadingArticle(null);
     }
   };
 
@@ -487,17 +507,27 @@ export default function AdminArticles() {
         </button>
       </div>
 
-      {error && (
-        <div className="mb-4 flex items-center gap-2 p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm">
-          <AlertCircle size={15} /> {error}
-        </div>
-      )}
-
       <div className="bg-white rounded-2xl border border-slate-200">
+        {error && !loading && (
+          <div className="mb-4 flex items-center gap-2 p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm">
+            <AlertCircle size={15} /> {error}
+          </div>
+        )}
+
         {loading ? (
           <div className="p-12 flex items-center justify-center text-slate-500">
             <Loader2 size={20} className="animate-spin mr-2" /> Loading
             articles…
+          </div>
+        ) : error ? (
+          <div className="p-12 text-center">
+            <p className="text-red-600 mb-4">{error}</p>
+            <button
+              onClick={() => load()}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-500 text-black text-sm font-semibold hover:bg-amber-400 transition-colors"
+            >
+              Try again
+            </button>
           </div>
         ) : articles.length === 0 ? (
           <div className="p-12 text-center">
@@ -542,13 +572,15 @@ export default function AdminArticles() {
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
                   <button
-                    onClick={() => {
-                      setEditing(a);
-                      setView("edit");
-                    }}
+                    onClick={() => handleEdit(a.id)}
+                    disabled={loadingArticle === a.id}
                     className="px-3 py-1.5 rounded-lg text-xs font-medium border border-slate-300 text-slate-700 hover:border-amber-500 hover:text-amber-600 transition-colors"
                   >
-                    Edit
+                    {loadingArticle === a.id ? (
+                      <Loader2 size={14} className="animate-spin" />
+                    ) : (
+                      "Edit"
+                    )}
                   </button>
                   <button
                     onClick={() => handleDelete(a.id)}

@@ -1,16 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { ArrowRight, Clock, Calendar } from "lucide-react";
-import { ARTICLES } from "../data/articles";
+import { ArrowRight, Clock, Calendar, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-
-const ALL_CATEGORIES = [
-  "All",
-  ...Array.from(new Set(ARTICLES.map((a) => a.category))),
-];
+import api from "../services/api";
 
 const CATEGORY_STYLES = {
   Insights: "bg-blue-50 text-blue-600 border-blue-100",
@@ -33,8 +27,16 @@ function CategoryBadge({ category }) {
   );
 }
 
+function formatDate(iso) {
+  return new Date(iso).toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+}
+
 function FeaturedArticleCard({ article }) {
-  const { slug, category, title, excerpt, date, readTime } = article;
+  const { slug, category, title, excerpt, created_at, read_time } = article;
   return (
     <Link to={`/articles/${slug}`}>
       <Card className="group relative hover:border-amber-300 hover:shadow-lg transition-all duration-300">
@@ -61,12 +63,14 @@ function FeaturedArticleCard({ article }) {
             <div className="flex items-center gap-5 mt-6 text-xs text-slate-400">
               <span className="flex items-center gap-1.5">
                 <Calendar size={12} />
-                {date}
+                {formatDate(created_at)}
               </span>
-              <span className="flex items-center gap-1.5">
-                <Clock size={12} />
-                {readTime}
-              </span>
+              {read_time && (
+                <span className="flex items-center gap-1.5">
+                  <Clock size={12} />
+                  {read_time}
+                </span>
+              )}
               <span className="ml-auto flex items-center gap-1 text-amber-600 font-semibold text-xs group-hover:gap-2 transition-all">
                 Read article <ArrowRight size={13} />
               </span>
@@ -79,7 +83,7 @@ function FeaturedArticleCard({ article }) {
 }
 
 function ArticleCard({ article }) {
-  const { slug, category, title, excerpt, date, readTime } = article;
+  const { slug, category, title, excerpt, created_at, read_time } = article;
   return (
     <Link to={`/articles/${slug}`}>
       <Card className="group h-full hover:border-amber-300 hover:shadow-md transition-all duration-200">
@@ -92,12 +96,14 @@ function ArticleCard({ article }) {
           <div className="flex items-center justify-between mt-6 text-xs text-slate-400">
             <span className="flex items-center gap-1.5">
               <Calendar size={11} />
-              {date}
+              {formatDate(created_at)}
             </span>
-            <span className="flex items-center gap-1.5">
-              <Clock size={11} />
-              {readTime}
-            </span>
+            {read_time && (
+              <span className="flex items-center gap-1.5">
+                <Clock size={11} />
+                {read_time}
+              </span>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -106,19 +112,28 @@ function ArticleCard({ article }) {
 }
 
 export default function Articles() {
+  const [articles, setArticles] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState("All");
 
-  const featured = ARTICLES.filter((a) => a.featured);
-  const filteredFeatured =
-    activeCategory === "All"
-      ? featured
-      : featured.filter((a) => a.category === activeCategory);
+  useEffect(() => {
+    api
+      .get("/articles")
+      .then((res) => setArticles(res.data.articles))
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, []);
 
-  const rest = ARTICLES.filter((a) => !a.featured);
-  const filteredRest =
-    activeCategory === "All"
-      ? rest
-      : rest.filter((a) => a.category === activeCategory);
+  const allCategories = [
+    "All",
+    ...Array.from(new Set(articles.map((a) => a.category))),
+  ];
+
+  const inCategory = (a) =>
+    activeCategory === "All" || a.category === activeCategory;
+
+  const featured = articles.filter((a) => a.featured && inCategory(a));
+  const rest = articles.filter((a) => !a.featured && inCategory(a));
 
   return (
     <div className="pt-24 pb-20">
@@ -140,30 +155,40 @@ export default function Articles() {
           </p>
         </div>
 
-        {/* Category filter  */}
-        <div className="relative mb-12">
-          <div className="flex gap-2 overflow-x-auto pb-2 scroll-smooth [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            {ALL_CATEGORIES.map((cat) => (
-              <Button
-                key={cat}
-                variant={activeCategory === cat ? "default" : "outline"}
-                size="sm"
-                onClick={() => setActiveCategory(cat)}
-                className={`shrink-0 rounded-full px-4 transition-all ${
-                  activeCategory === cat
-                    ? "bg-amber-500 hover:bg-amber-400 text-white border-amber-500"
-                    : "text-slate-600 hover:text-amber-600 hover:border-amber-300"
-                }`}
-              >
-                {cat}
-              </Button>
-            ))}
+        {/* Category filter */}
+        {!loading && articles.length > 0 && (
+          <div className="relative mb-12">
+            <div className="flex gap-2 overflow-x-auto pb-2 scroll-smooth [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              {allCategories.map((cat) => (
+                <Button
+                  key={cat}
+                  variant={activeCategory === cat ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setActiveCategory(cat)}
+                  className={`shrink-0 rounded-full px-4 transition-all ${
+                    activeCategory === cat
+                      ? "bg-amber-500 hover:bg-amber-400 text-white border-amber-500"
+                      : "text-slate-600 hover:text-amber-600 hover:border-amber-300"
+                  }`}
+                >
+                  {cat}
+                </Button>
+              ))}
+            </div>
+            <div className="pointer-events-none absolute right-0 top-0 h-full w-8 bg-linear-to-l from-white to-transparent sm:hidden" />
           </div>
-          {/* Fade-out hint on mobile to indicate scrollability */}
-          <div className="pointer-events-none absolute right-0 top-0 h-full w-8 bg-linear-to-l from-white to-transparent sm:hidden" />
-        </div>
+        )}
+
+        {/* Loading */}
+        {loading && (
+          <div className="flex items-center justify-center py-24 text-slate-400">
+            <Loader2 size={20} className="animate-spin mr-2" /> Loading
+            articles…
+          </div>
+        )}
+
         {/* Featured articles */}
-        {filteredFeatured.length > 0 && (
+        {!loading && featured.length > 0 && (
           <section className="mb-14">
             <div className="flex items-center gap-3 mb-6">
               <div className="w-6 h-px bg-amber-500" />
@@ -172,7 +197,7 @@ export default function Articles() {
               </span>
             </div>
             <div className="flex flex-col gap-4">
-              {filteredFeatured.map((article) => (
+              {featured.map((article) => (
                 <FeaturedArticleCard key={article.slug} article={article} />
               ))}
             </div>
@@ -180,7 +205,7 @@ export default function Articles() {
         )}
 
         {/* All other articles */}
-        {filteredRest.length > 0 && (
+        {!loading && rest.length > 0 && (
           <section>
             <div className="flex items-center gap-3 mb-10">
               <div className="w-6 h-px bg-amber-500" />
@@ -189,7 +214,7 @@ export default function Articles() {
               </span>
             </div>
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredRest.map((article) => (
+              {rest.map((article) => (
                 <ArticleCard key={article.slug} article={article} />
               ))}
             </div>
@@ -197,18 +222,22 @@ export default function Articles() {
         )}
 
         {/* Empty state */}
-        {filteredFeatured.length === 0 && filteredRest.length === 0 && (
+        {!loading && featured.length === 0 && rest.length === 0 && (
           <div className="text-center py-20 text-slate-400">
             <p className="text-lg font-medium">
-              No articles in this category yet.
+              {articles.length === 0
+                ? "No articles published yet."
+                : "No articles in this category yet."}
             </p>
-            <Button
-              variant="link"
-              className="mt-2 text-amber-600"
-              onClick={() => setActiveCategory("All")}
-            >
-              View all articles
-            </Button>
+            {articles.length > 0 && (
+              <Button
+                variant="link"
+                className="mt-2 text-amber-600"
+                onClick={() => setActiveCategory("All")}
+              >
+                View all articles
+              </Button>
+            )}
           </div>
         )}
 

@@ -1,9 +1,17 @@
+import { useState, useEffect } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Clock, Calendar, User, ArrowRight } from "lucide-react";
-import { ARTICLES } from "../data/articles";
+import {
+  ArrowLeft,
+  Clock,
+  Calendar,
+  User,
+  ArrowRight,
+  Loader2,
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import api from "../services/api";
 
 const CATEGORY_STYLES = {
   Insights: "bg-blue-50 text-blue-600 border-blue-100",
@@ -26,28 +34,68 @@ function CategoryBadge({ category }) {
   );
 }
 
-function BodyBlock({ block }) {
-  if (block.type === "heading") {
-    return (
-      <h2 className="mt-10 mb-4 text-xl font-bold text-[#0C0C0C] tracking-tight">
-        {block.text}
-      </h2>
-    );
-  }
-  return (
-    <p className="mb-5 text-slate-600 leading-relaxed text-[1.0625rem]">
-      {block.text}
-    </p>
-  );
+function formatDate(iso) {
+  return new Date(iso).toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+}
+
+function authorInitials(name = "") {
+  return name
+    .split(" ")
+    .map((n) => n[0])
+    .join("");
 }
 
 export default function ArticlePage() {
   const { slug } = useParams();
   const navigate = useNavigate();
 
-  const article = ARTICLES.find((a) => a.slug === slug);
+  const [article, setArticle] = useState(null);
+  const [related, setRelated] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [notFound, setNotFound] = useState(false);
 
-  if (!article) {
+  useEffect(() => {
+    setLoading(true);
+    setNotFound(false);
+
+    api
+      .get(`/articles/${slug}`)
+      .then((res) => {
+        setArticle(res.data.article);
+        // Fetch all articles to build the related list
+        return api.get("/articles");
+      })
+      .then((res) => {
+        const all = res.data.articles;
+        const current = all.find((a) => a.slug === slug);
+        const sameCategory = all.filter(
+          (a) => a.slug !== slug && a.category === current?.category,
+        );
+        setRelated(
+          sameCategory.length >= 1
+            ? sameCategory.slice(0, 2)
+            : all.filter((a) => a.slug !== slug).slice(0, 2),
+        );
+      })
+      .catch((err) => {
+        if (err.response?.status === 404) setNotFound(true);
+      })
+      .finally(() => setLoading(false));
+  }, [slug]);
+
+  if (loading) {
+    return (
+      <div className="pt-24 pb-20 min-h-screen flex items-center justify-center text-slate-400">
+        <Loader2 size={20} className="animate-spin mr-2" /> Loading…
+      </div>
+    );
+  }
+
+  if (notFound || !article) {
     return (
       <div className="pt-24 pb-20 min-h-screen flex flex-col items-center justify-center text-center px-4">
         <h1 className="text-3xl font-bold text-[#0C0C0C] mb-3">
@@ -67,14 +115,6 @@ export default function ArticlePage() {
       </div>
     );
   }
-
-  const related = ARTICLES.filter(
-    (a) => a.slug !== slug && a.category === article.category,
-  ).slice(0, 2);
-  const relatedArticles =
-    related.length >= 1
-      ? related
-      : ARTICLES.filter((a) => a.slug !== slug).slice(0, 2);
 
   return (
     <div className="pt-24 pb-20">
@@ -106,65 +146,81 @@ export default function ArticlePage() {
 
             {/* Meta row */}
             <div className="mt-6 pt-6 border-t border-slate-100 flex flex-wrap items-center gap-5 text-sm text-slate-400">
-              <span className="flex items-center gap-1.5">
-                <User size={13} />
-                <span className="font-medium text-slate-600">
-                  {article.author}
+              {article.author && (
+                <span className="flex items-center gap-1.5">
+                  <User size={13} />
+                  <span className="font-medium text-slate-600">
+                    {article.author}
+                  </span>
+                  {article.author_role && (
+                    <span className="hidden sm:inline">
+                      — {article.author_role}
+                    </span>
+                  )}
                 </span>
-                <span className="hidden sm:inline">— {article.authorRole}</span>
-              </span>
+              )}
               <span className="flex items-center gap-1.5">
                 <Calendar size={13} />
-                {article.date}
+                {formatDate(article.created_at)}
               </span>
-              <span className="flex items-center gap-1.5">
-                <Clock size={13} />
-                {article.readTime}
-              </span>
+              {article.read_time && (
+                <span className="flex items-center gap-1.5">
+                  <Clock size={13} />
+                  {article.read_time}
+                </span>
+              )}
             </div>
           </div>
 
           {/* Divider */}
           <div className="h-px bg-linear-to-r from-amber-400 via-amber-200 to-transparent mb-10" />
 
-          {/* Article body */}
-          <div>
-            {article.body.map((block, i) => (
-              <BodyBlock key={i} block={block} />
-            ))}
-          </div>
+          {/* Article body — rendered from Tiptap HTML */}
+          <div
+            className="prose prose-slate max-w-none
+              prose-headings:text-[#0C0C0C] prose-headings:font-bold
+              prose-h2:text-xl prose-h2:mt-10 prose-h2:mb-4
+              prose-h3:text-base prose-h3:mt-8 prose-h3:mb-3
+              prose-p:text-slate-600 prose-p:leading-relaxed prose-p:text-[1.0625rem] prose-p:mb-5
+              prose-ul:list-disc prose-ul:ml-4 prose-li:mb-1
+              prose-ol:list-decimal prose-ol:ml-4
+              prose-a:text-amber-600 prose-a:underline hover:prose-a:text-amber-700
+              prose-strong:text-[#0C0C0C]"
+            dangerouslySetInnerHTML={{ __html: article.body }}
+          />
 
           {/* End divider */}
           <div className="mt-12 h-px bg-slate-100" />
 
           {/* Author card */}
-          <Card className="mt-8 bg-slate-50 border-slate-100">
-            <CardContent className="p-6 flex items-start gap-4">
-              <div className="w-11 h-11 rounded-full bg-amber-100 flex items-center justify-center shrink-0 text-amber-600 font-bold text-sm">
-                {article.author
-                  .split(" ")
-                  .map((n) => n[0])
-                  .join("")}
-              </div>
-              <div>
-                <p className="font-semibold text-[#0C0C0C] text-sm">
-                  {article.author}
-                </p>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  {article.authorRole}
-                </p>
-                <p className="text-sm text-slate-600 mt-2 leading-relaxed">
-                  Part of the AI-Solutions team based in Sunderland, working to
-                  make the digital employee experience better for organisations
-                  across the UK and beyond.
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+          {article.author && (
+            <Card className="mt-8 bg-slate-50 border-slate-100">
+              <CardContent className="p-6 flex items-start gap-4">
+                <div className="w-11 h-11 rounded-full bg-amber-100 flex items-center justify-center shrink-0 text-amber-600 font-bold text-sm">
+                  {authorInitials(article.author)}
+                </div>
+                <div>
+                  <p className="font-semibold text-[#0C0C0C] text-sm">
+                    {article.author}
+                  </p>
+                  {article.author_role && (
+                    <p className="text-xs text-slate-500 mt-0.5">
+                      {article.author_role}
+                    </p>
+                  )}
+                  <p className="text-sm text-slate-600 mt-2 leading-relaxed">
+                    Part of the AI-Solutions team based in Sunderland, working
+                    to make the digital employee experience better for
+                    organisations across the UK and beyond.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
 
         {/* Related articles */}
-        {relatedArticles.length > 0 && (
+        {related.length > 0 && (
           <div className="mt-20 max-w-3xl mx-auto">
             <div className="flex items-center gap-3 mb-8">
               <div className="w-6 h-px bg-amber-500" />
@@ -173,7 +229,7 @@ export default function ArticlePage() {
               </span>
             </div>
             <div className="grid sm:grid-cols-2 gap-6">
-              {relatedArticles.map((a) => (
+              {related.map((a) => (
                 <Link key={a.slug} to={`/articles/${a.slug}`}>
                   <Card className="group h-full hover:border-amber-300 hover:shadow-md transition-all duration-200">
                     <CardContent className="p-6 flex flex-col h-full">
@@ -182,7 +238,7 @@ export default function ArticlePage() {
                         {a.title}
                       </h3>
                       <div className="flex items-center justify-between mt-4 text-xs text-slate-400">
-                        <span>{a.date}</span>
+                        <span>{formatDate(a.created_at)}</span>
                         <span className="flex items-center gap-1 text-amber-600 font-semibold group-hover:gap-1.5 transition-all">
                           Read <ArrowRight size={12} />
                         </span>

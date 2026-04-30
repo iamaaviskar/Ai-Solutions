@@ -5,6 +5,7 @@ import cookieParser from "cookie-parser";
 import contactRoutes from "./routes/contact.js";
 import adminRoutes from "./routes/admin.js";
 import chatRoutes from "./routes/chat.js";
+import articlesRoutes from "./routes/articles.js";
 
 dotenv.config();
 
@@ -25,6 +26,7 @@ app.use(cookieParser());
 
 // ── Routes
 app.use("/api/contact", contactRoutes);
+app.use("/api/articles", articlesRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/chat", chatRoutes);
 
