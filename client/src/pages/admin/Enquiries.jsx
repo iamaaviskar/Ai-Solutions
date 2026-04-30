@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import {
   Search,
   Mail,
@@ -23,47 +24,86 @@ const STATUS_STYLES = {
 };
 
 export default function AdminEnquiries() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const pageParam = parseInt(searchParams.get("page") || "1", 10);
+  const page = Number.isFinite(pageParam) && pageParam > 0 ? pageParam : 1;
+  const statusFilter = STATUS_OPTIONS.includes(searchParams.get("status"))
+    ? searchParams.get("status")
+    : "";
+  const searchQuery = searchParams.get("search") || "";
+
   const [enquiries, setEnquiries] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("");
+  const [search, setSearch] = useState(searchQuery);
   const [updatingId, setUpdatingId] = useState(null);
   const [expanded, setExpanded] = useState(null);
-  const [page, setPage] = useState(1);
   const [pagination, setPagination] = useState(null);
 
-  const load = async (p = 1) => {
-    setLoading(true);
-    setError("");
-    try {
-      const res = await api.get("/admin/enquiries", {
-        params: { search, status: statusFilter, limit: PAGE_LIMIT, page: p },
-      });
-      setEnquiries(res.data.enquiries);
-      setPagination(res.data.pagination);
-      setExpanded(null);
-    } catch {
-      setError("Unable to load enquiries.");
-    } finally {
-      setLoading(false);
-    }
-  };
+  const updateQuery = useCallback((next) => {
+    const params = new URLSearchParams(searchParams);
+
+    Object.entries(next).forEach(([key, value]) => {
+      if (!value || value === "1") {
+        params.delete(key);
+      } else {
+        params.set(key, String(value));
+      }
+    });
+
+    setSearchParams(params);
+  }, [searchParams, setSearchParams]);
 
   useEffect(() => {
-    setPage(1);
-    load(1);
-  }, [statusFilter]);
+    let active = true;
+
+    queueMicrotask(() => {
+      if (!active) return;
+      setSearch(searchQuery);
+      setLoading(true);
+      setError("");
+    });
+
+    api
+      .get("/admin/enquiries", {
+        params: {
+          search: searchQuery,
+          status: statusFilter,
+          limit: PAGE_LIMIT,
+          page,
+        },
+      })
+      .then((res) => {
+        if (!active) return;
+        setEnquiries(res.data.enquiries);
+        setPagination(res.data.pagination);
+        setExpanded(null);
+      })
+      .catch(() => {
+        if (active) setError("Unable to load enquiries.");
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [page, searchQuery, statusFilter]);
+
+  useEffect(() => {
+    if (pagination && pagination.pages > 0 && page > pagination.pages) {
+      updateQuery({ page: pagination.pages });
+    }
+  }, [page, pagination, updateQuery]);
 
   const onSearchSubmit = (e) => {
     e.preventDefault();
-    setPage(1);
-    load(1);
+    updateQuery({ search: search.trim(), page: 1 });
   };
 
   const goToPage = (p) => {
-    setPage(p);
-    load(p);
+    updateQuery({ page: p });
   };
 
   const updateStatus = async (id, newStatus) => {
@@ -110,14 +150,14 @@ export default function AdminEnquiries() {
           <div className="flex gap-1.5 flex-wrap">
             <FilterChip
               active={!statusFilter}
-              onClick={() => setStatusFilter("")}
+              onClick={() => updateQuery({ status: "", page: 1 })}
               label="All"
             />
             {STATUS_OPTIONS.map((s) => (
               <FilterChip
                 key={s}
                 active={statusFilter === s}
-                onClick={() => setStatusFilter(s)}
+                onClick={() => updateQuery({ status: s, page: 1 })}
                 label={s[0].toUpperCase() + s.slice(1)}
               />
             ))}
