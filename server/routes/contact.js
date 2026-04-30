@@ -77,9 +77,21 @@ router.post("/", contactLimiter, validateContact, async (req, res) => {
     });
   } catch (err) {
     console.error("Contact insert error:", err);
+
+    if (err.code === "23505" && err.constraint === "contacts_email_unique") {
+      return res.status(409).json({
+        error:
+          "We already have an enquiry from this email address. If you need to add more details, please contact us directly or use a different email.",
+        field: "email",
+      });
+    }
+
     return res
       .status(500)
-      .json({ error: "Something went wrong. Please try again." });
+      .json({
+        error:
+          "We couldn't send your enquiry right now. Please try again in a moment.",
+      });
   }
 });
 

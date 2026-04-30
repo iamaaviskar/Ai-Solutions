@@ -82,7 +82,8 @@ export default function ChatWidget() {
       setMessages((prev) => [...prev, { role: "model", text: data.reply }]);
     } catch (err) {
       const msg =
-        err.response?.data?.error || "Something went wrong. Please try again.";
+        err.response?.data?.error ||
+        "The AI assistant couldn't respond right now. Please try again in a moment.";
       setError(msg);
     } finally {
       setLoading(false);

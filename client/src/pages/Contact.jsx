@@ -82,9 +82,13 @@ export default function Contact() {
         }
         setFieldErrors(fe);
         setError("Please fix the highlighted fields and try again.");
+      } else if (data?.field && data?.error) {
+        setFieldErrors({ [data.field]: data.error });
+        setError(data.error);
       } else {
         setError(
-          data?.error || "Something went wrong. Please try again shortly.",
+          data?.error ||
+            "We couldn't send your enquiry right now. Please try again shortly.",
         );
       }
     } finally {
