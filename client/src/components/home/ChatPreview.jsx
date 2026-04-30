@@ -8,7 +8,7 @@ export default function ChatPreview({ messages }) {
         <div className="flex items-center gap-1.5 ml-3">
           <div className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
           <span className="text-[11px] text-slate-400 font-medium">
-            AI-Solutions Assistant — Online
+            AI-Solutions Assistant - Online
           </span>
         </div>
       </div>

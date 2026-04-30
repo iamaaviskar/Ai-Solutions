@@ -420,7 +420,8 @@ export default function AdminEnquiries() {
         {pagination && pagination.total > 0 && (
           <div className="px-5 py-4 border-t border-slate-100 flex items-center justify-between">
             <p className="text-xs text-slate-500">
-              Showing {(page - 1) * PAGE_LIMIT + 1}–
+              Showing {(page - 1) * PAGE_LIMIT + 1}
+              {" - "}
               {Math.min(page * PAGE_LIMIT, pagination.total)} of{" "}
               {pagination.total}
             </p>

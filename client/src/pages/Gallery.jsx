@@ -40,7 +40,7 @@ const PHOTOS = [
     src: "https://images.unsplash.com/photo-1475721027785-f74eccf877e2?w=800&q=80",
     alt: "Future of Work webinar recording session",
     event: "Webinar: Future of Work",
-    location: "Online — Zoom",
+    location: "Online - Zoom",
     date: "August 2025",
     category: "Webinar",
     wide: true,
@@ -172,7 +172,7 @@ export default function Gallery() {
           </h1>
           <p className="mt-5 text-lg text-slate-600 leading-relaxed">
             From product launches and conferences to team workshops and client
-            showcases — a look at the people and events behind our work.
+            showcases - a look at the people and events behind our work.
           </p>
         </div>
 

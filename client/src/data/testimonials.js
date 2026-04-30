@@ -9,7 +9,7 @@ export const TESTIMONIALS = [
     name: "James O'Connor",
     title: "Head of Digital, Meridian Financial",
     rating: 5,
-    text: "The prototyping turnaround was incredible — we went from concept to testable prototype in two weeks. I've never seen anything move that fast at this quality.",
+    text: "The prototyping turnaround was incredible - we went from concept to testable prototype in two weeks. I've never seen anything move that fast at this quality.",
   },
   {
     name: "Priya Sharma",

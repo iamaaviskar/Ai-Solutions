@@ -16,12 +16,12 @@ const VALUES = [
   {
     icon: Globe2,
     title: "Worldwide impact, local roots",
-    body: "Headquartered in Sunderland, UK — partnering with teams across Europe, North America, and beyond.",
+    body: "Headquartered in Sunderland, UK - partnering with teams across Europe, North America, and beyond.",
   },
   {
     icon: Sparkles,
     title: "Move at start-up speed",
-    body: "Our small, senior team owns each engagement end-to-end. No handoffs, no slide-deck theater — just shipping.",
+    body: "Our small, senior team owns each engagement end-to-end. No handoffs, no slide-deck theater - just shipping.",
   },
 ];
 
@@ -50,7 +50,7 @@ export default function About() {
           <p className="mt-5 text-lg text-slate-600 leading-relaxed">
             AI-Solutions is a tech start-up based in Sunderland, UK. We use
             artificial intelligence to help businesses rapidly address the
-            issues affecting their digital employee experience — and we make
+            issues affecting their digital employee experience - and we make
             production-grade prototyping affordable enough to actually try.
           </p>
         </div>
@@ -65,7 +65,7 @@ export default function About() {
               AI as a quiet partner for every employee.
             </h2>
             <p className="text-slate-400 leading-relaxed">
-              To support people at work by making AI a quiet partner — one that
+              To support people at work by making AI a quiet partner - one that
               removes friction, surfaces the right answers, and gives every
               employee back the time they spend fighting their tools.
             </p>
@@ -123,7 +123,7 @@ export default function About() {
               Want to work with us?
             </h2>
             <p className="mt-3 text-black/70 leading-relaxed">
-              Tell us where your team is feeling the friction — we will come
+              Tell us where your team is feeling the friction - we will come
               back with a scoped plan and a quote within a week.
             </p>
             <Link

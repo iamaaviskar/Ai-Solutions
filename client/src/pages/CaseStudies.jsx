@@ -7,7 +7,7 @@ const CASES = [
     client: "Northwind Logistics",
     sector: "Logistics & Supply Chain",
     headline: "Cut warehouse onboarding time by 62% with an AI knowledge assistant",
-    summary: "Northwind's frontline staff lost hours hunting through 14 different SOPs. We built a conversational assistant trained on their procedures — every new hire gets answers in seconds.",
+    summary: "Northwind's frontline staff lost hours hunting through 14 different SOPs. We built a conversational assistant trained on their procedures - every new hire gets answers in seconds.",
     metrics: [
       { icon: Clock, label: "Onboarding time", value: "-62%" },
       { icon: TrendingUp, label: "Pick accuracy", value: "+18%" },
@@ -60,7 +60,7 @@ export default function CaseStudies() {
           </h1>
           <p className="mt-5 text-lg text-slate-600 leading-relaxed">
             A few of the engagements we are proud of. Different industries,
-            different scales — same focus on tangible employee experience improvements.
+            different scales - same focus on tangible employee experience improvements.
           </p>
         </div>
 

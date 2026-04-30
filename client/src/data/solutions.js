@@ -5,7 +5,7 @@ export const SOLUTIONS = [
     icon: Bot,
     title: "AI Virtual Assistant",
     description:
-      "Our intelligent assistant responds to employee queries instantly — reducing IT and HR ticket volumes by up to 60%.",
+      "Our intelligent assistant responds to employee queries instantly - reducing IT and HR ticket volumes by up to 60%.",
   },
   {
     icon: Cpu,

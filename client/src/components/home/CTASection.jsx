@@ -22,7 +22,7 @@ export default function CTASection() {
               <div>
                 <p className="text-black/70 text-lg leading-relaxed mb-8">
                   Tell us about your project. Our team will get back to you
-                  within one business day with a tailored approach — no sales
+                  within one business day with a tailored approach - no sales
                   pitch, just a real conversation.
                 </p>
 

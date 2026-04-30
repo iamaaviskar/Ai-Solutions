@@ -1,4 +1,4 @@
-# AI-Solutions — Full Stack Application
+# AI-Solutions - Full Stack Application
 
 A full-stack web application for **AI-Solutions**, a Sunderland-based AI start-up.
 
@@ -10,8 +10,8 @@ Built with **React + Vite**, **TailwindCSS**, **shadcn/ui**, **Node.js (Express)
 
 ```
 ai-solutions/
-├── client/        # React frontend (Vite + TailwindCSS + shadcn/ui)
-└── server/        # Node.js + Express API backend
+|-- client/        # React frontend (Vite + TailwindCSS + shadcn/ui)
+`-- server/        # Node.js + Express API backend
 ```
 
 ---
@@ -77,7 +77,7 @@ The frontend runs on **http://localhost:5173**.
 
 | Route           | Description                        |
 | --------------- | ---------------------------------- |
-| `/`             | Home — hero, stats, features, USPs |
+| `/`             | Home - hero, stats, features, USPs |
 | `/solutions`    | Software solutions offered         |
 | `/case-studies` | Past industry solutions            |
 | `/testimonials` | Customer feedback & ratings        |

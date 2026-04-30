@@ -51,7 +51,7 @@ export default function Footer() {
             <FooterLogo />
             <p className="text-slate-400 text-sm leading-relaxed mb-6 max-w-xs">
               Innovating, promoting, and delivering the future of the digital
-              employee experience — supporting people at work, worldwide.
+              employee experience - supporting people at work, worldwide.
             </p>
             <ul className="space-y-2 text-sm text-slate-400">
               <li className="flex items-start gap-2">

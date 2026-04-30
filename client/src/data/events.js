@@ -1,6 +1,6 @@
 export const EVENTS = [
   {
-    title: "AI-Solutions Demo Day — Sunderland",
+    title: "AI-Solutions Demo Day - Sunderland",
     date: "May 14, 2026",
     location: "Sunderland Software Centre, Doxford Park",
     type: "In Person",
@@ -8,7 +8,7 @@ export const EVENTS = [
   {
     title: "Webinar: Future-Proofing Your Digital Workplace",
     date: "May 27, 2026",
-    location: "Online — Zoom",
+    location: "Online - Zoom",
     type: "Webinar",
   },
   {

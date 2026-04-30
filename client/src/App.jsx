@@ -29,7 +29,7 @@ export default function App() {
     <AuthProvider>
       <BrowserRouter>
         <Routes>
-          {/* ── Public site (with Navbar + Footer) */}
+          {/* Public site with Navbar and Footer */}
           <Route element={<Layout />}>
             <Route index element={<Home />} />
             <Route path="solutions" element={<Solutions />} />
@@ -41,10 +41,10 @@ export default function App() {
             <Route path="contact" element={<Contact />} />
           </Route>
 
-          {/* ── Admin login (no layout) */}
+          {/* Admin login without layout */}
           <Route path="admin/login" element={<AdminLogin />} />
 
-          {/* ── Admin (sidebar layout, protected) */}
+          {/* Protected admin area */}
           <Route element={<ProtectedRoute />}>
             <Route element={<AdminLayout />}>
               <Route path="admin/dashboard" element={<AdminDashboard />} />

@@ -151,7 +151,7 @@ export default function Articles() {
           </h1>
           <p className="mt-5 text-lg text-slate-600 leading-relaxed">
             Thinking on AI, digital employee experience, and the future of work
-            — from the team building it.
+            - from the team building it.
           </p>
         </div>
 

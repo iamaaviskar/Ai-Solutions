@@ -11,7 +11,7 @@ export default function HeroContent() {
 
       <h1 className="text-5xl sm:text-6xl lg:text-[3.75rem] font-bold text-[#0C0C0C] leading-[1.05] tracking-tight mb-7">
         Making work <span className="text-amber-500">better</span> for real
-        people — with AI.
+        people - with AI.
       </h1>
 
       <p className="text-slate-500 text-lg leading-relaxed mb-10 max-w-md">

@@ -8,7 +8,7 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true); // true until /me resolves
 
   // On mount, ask the server if the cookie session is still valid.
-  // This is the single source of truth — no localStorage involved.
+  // This is the single source of truth - no localStorage involved.
   useEffect(() => {
     api
       .get("/admin/me")
@@ -25,7 +25,7 @@ export function AuthProvider({ children }) {
   }, []);
 
   const login = (data) => {
-    // Server already set the httpOnly cookie — just update local state
+    // Server already set the httpOnly cookie - just update local state
     setAdmin(data);
   };
 
@@ -33,7 +33,7 @@ export function AuthProvider({ children }) {
     try {
       await api.post("/admin/logout");
     } catch {
-      // swallow — clear locally regardless
+      // swallow - clear locally regardless
     } finally {
       setAdmin(null);
     }

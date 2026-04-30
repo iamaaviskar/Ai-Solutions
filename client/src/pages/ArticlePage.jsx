@@ -167,7 +167,7 @@ export default function ArticlePage() {
                   </span>
                   {article.author_role && (
                     <span className="hidden sm:inline">
-                      — {article.author_role}
+                      - {article.author_role}
                     </span>
                   )}
                 </span>
@@ -188,7 +188,7 @@ export default function ArticlePage() {
           {/* Divider */}
           <div className="h-px bg-linear-to-r from-amber-400 via-amber-200 to-transparent mb-10" />
 
-          {/* Article body — rendered from Tiptap HTML */}
+          {/* Article body - rendered from Tiptap HTML */}
           <div
             className="article-body max-w-none"
             dangerouslySetInnerHTML={{ __html: article.body }}

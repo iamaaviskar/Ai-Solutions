@@ -116,7 +116,7 @@ export default function Contact() {
             />
             <div>
               <h2 className="text-xl font-semibold text-emerald-900">
-                Thanks — your enquiry is in.
+                Thanks - your enquiry is in.
               </h2>
               <p className="mt-2 text-emerald-800">
                 We will be in touch shortly. In the meantime, feel free to

@@ -37,7 +37,7 @@ export default function AdminLayout() {
 
   return (
     <div className="min-h-screen bg-[#FAFAF7] flex">
-      {/* ── Sidebar (desktop) ───────────────────────────────── */}
+      {/* Desktop sidebar */}
       <aside className="hidden lg:flex flex-col w-60 shrink-0 bg-[#0C0C0C] min-h-screen fixed left-0 top-0 bottom-0 z-30">
         {/* Logo */}
         <div className="px-6 py-5 border-b border-white/10">
@@ -100,7 +100,7 @@ export default function AdminLayout() {
         </div>
       </aside>
 
-      {/* ── Mobile sidebar overlay ───────────────────────────── */}
+      {/* Mobile sidebar overlay */}
       {mobileOpen && (
         <div
           className="fixed inset-0 bg-black/60 z-40 lg:hidden"
@@ -170,7 +170,7 @@ export default function AdminLayout() {
         </div>
       </aside>
 
-      {/* ── Main content area ────────────────────────────────── */}
+      {/* Main content area */}
       <div className="flex-1 flex flex-col lg:ml-60">
         {/* Mobile top bar */}
         <header className="lg:hidden bg-white border-b border-slate-200 h-14 flex items-center px-4 gap-4 sticky top-0 z-20">

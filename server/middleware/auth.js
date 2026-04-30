@@ -1,7 +1,7 @@
 import jwt from "jsonwebtoken";
 
 export const requireAuth = (req, res, next) => {
-  // Cookie-only — the token is never exposed to client JS
+  // Cookie-only - the token is never exposed to client JS
   const token = req.cookies?.admin_token;
 
   if (!token) {

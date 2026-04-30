@@ -3,7 +3,7 @@ import pool from "../db/index.js";
 
 const router = Router();
 
-// GET /api/articles — public, published only
+// GET /api/articles - public, published only
 router.get("/", async (req, res) => {
   try {
     const result = await pool.query(
@@ -20,7 +20,7 @@ router.get("/", async (req, res) => {
   }
 });
 
-// GET /api/articles/:slug — public, single published article
+// GET /api/articles/:slug - public, single published article
 router.get("/:slug", async (req, res) => {
   try {
     const result = await pool.query(

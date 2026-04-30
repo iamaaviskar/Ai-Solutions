@@ -12,7 +12,7 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// ── Middleware
+// Middleware
 app.use(
   cors({
     origin: process.env.CLIENT_URL || "http://localhost:5173",
@@ -24,7 +24,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-// ── Routes
+// Routes
 app.use("/api/contact", contactRoutes);
 app.use("/api/articles", articlesRoutes);
 app.use("/api/admin", adminRoutes);
@@ -46,7 +46,7 @@ app.use((err, req, res, _next) => {
   res.status(500).json({ error: "Internal server error." });
 });
 
-// ── Start
+// Start
 app.listen(PORT, () => {
   console.log(`AI-Solutions API running on http://localhost:${PORT}`);
 });

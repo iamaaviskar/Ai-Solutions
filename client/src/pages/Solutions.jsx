@@ -26,7 +26,7 @@ const SOLUTIONS = [
     icon: MessageSquareCode,
     title: "Conversational AI Assistants",
     description:
-      "Internal copilots that understand your policies, tools, and people. From IT helpdesk to HR Q&A — give every employee a smart first responder.",
+      "Internal copilots that understand your policies, tools, and people. From IT helpdesk to HR Q&A - give every employee a smart first responder.",
   },
   {
     icon: Workflow,
