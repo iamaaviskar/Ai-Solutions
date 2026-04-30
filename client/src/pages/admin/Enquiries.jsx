@@ -10,6 +10,11 @@ import {
   Loader2,
   ChevronLeft,
   ChevronRight,
+  StickyNote,
+  Archive,
+  ArchiveRestore,
+  Trash2,
+  Save,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import api from "../../services/api";
@@ -31,20 +36,26 @@ export default function AdminEnquiries() {
     ? searchParams.get("status")
     : "";
   const searchQuery = searchParams.get("search") || "";
+  const archivedFilter = searchParams.get("archived") === "1";
 
   const [enquiries, setEnquiries] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [search, setSearch] = useState(searchQuery);
   const [updatingId, setUpdatingId] = useState(null);
+  const [savingNotesId, setSavingNotesId] = useState(null);
+  const [archivingId, setArchivingId] = useState(null);
+  const [deletingId, setDeletingId] = useState(null);
   const [expanded, setExpanded] = useState(null);
   const [pagination, setPagination] = useState(null);
+  const [noteDrafts, setNoteDrafts] = useState({});
+  const [reloadKey, setReloadKey] = useState(0);
 
   const updateQuery = useCallback((next) => {
     const params = new URLSearchParams(searchParams);
 
     Object.entries(next).forEach(([key, value]) => {
-      if (!value || value === "1") {
+      if (!value || (key === "page" && value === "1")) {
         params.delete(key);
       } else {
         params.set(key, String(value));
@@ -53,6 +64,8 @@ export default function AdminEnquiries() {
 
     setSearchParams(params);
   }, [searchParams, setSearchParams]);
+
+  const refreshEnquiries = () => setReloadKey((key) => key + 1);
 
   useEffect(() => {
     let active = true;
@@ -69,6 +82,7 @@ export default function AdminEnquiries() {
         params: {
           search: searchQuery,
           status: statusFilter,
+          archived: archivedFilter ? "1" : undefined,
           limit: PAGE_LIMIT,
           page,
         },
@@ -77,6 +91,11 @@ export default function AdminEnquiries() {
         if (!active) return;
         setEnquiries(res.data.enquiries);
         setPagination(res.data.pagination);
+        setNoteDrafts(
+          Object.fromEntries(
+            res.data.enquiries.map((i) => [i.id, i.admin_notes ?? ""]),
+          ),
+        );
         setExpanded(null);
       })
       .catch(() => {
@@ -89,7 +108,7 @@ export default function AdminEnquiries() {
     return () => {
       active = false;
     };
-  }, [page, searchQuery, statusFilter]);
+  }, [page, searchQuery, statusFilter, archivedFilter, reloadKey]);
 
   useEffect(() => {
     if (pagination && pagination.pages > 0 && page > pagination.pages) {
@@ -109,14 +128,82 @@ export default function AdminEnquiries() {
   const updateStatus = async (id, newStatus) => {
     setUpdatingId(id);
     try {
-      await api.patch(`/admin/enquiries/${id}/status`, { status: newStatus });
+      const res = await api.patch(`/admin/enquiries/${id}/status`, {
+        status: newStatus,
+      });
       setEnquiries((prev) =>
-        prev.map((i) => (i.id === id ? { ...i, status: newStatus } : i)),
+        prev.map((i) => (i.id === id ? res.data.enquiry : i)),
       );
     } catch {
       setError("Failed to update status.");
     } finally {
       setUpdatingId(null);
+    }
+  };
+
+  const saveNotes = async (id) => {
+    setSavingNotesId(id);
+    setError("");
+    try {
+      const res = await api.patch(`/admin/enquiries/${id}`, {
+        admin_notes: noteDrafts[id] ?? "",
+      });
+      setEnquiries((prev) =>
+        prev.map((i) => (i.id === id ? res.data.enquiry : i)),
+      );
+      setNoteDrafts((prev) => ({
+        ...prev,
+        [id]: res.data.enquiry.admin_notes ?? "",
+      }));
+    } catch {
+      setError("Failed to save notes.");
+    } finally {
+      setSavingNotesId(null);
+    }
+  };
+
+  const toggleArchive = async (id, archived) => {
+    const action = archived ? "archive" : "restore";
+    if (
+      !window.confirm(
+        archived
+          ? "Archive this enquiry? You can restore it from the Archived filter."
+          : "Restore this enquiry to the active list?",
+      )
+    ) {
+      return;
+    }
+
+    setArchivingId(id);
+    setError("");
+    try {
+      await api.patch(`/admin/enquiries/${id}`, { archived });
+      refreshEnquiries();
+    } catch {
+      setError(`Failed to ${action} enquiry.`);
+    } finally {
+      setArchivingId(null);
+    }
+  };
+
+  const deleteEnquiry = async (id) => {
+    if (
+      !window.confirm(
+        "Permanently delete this enquiry? This cannot be undone.",
+      )
+    ) {
+      return;
+    }
+
+    setDeletingId(id);
+    setError("");
+    try {
+      await api.delete(`/admin/enquiries/${id}`);
+      refreshEnquiries();
+    } catch {
+      setError("Failed to delete enquiry.");
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -149,18 +236,25 @@ export default function AdminEnquiries() {
           </form>
           <div className="flex gap-1.5 flex-wrap">
             <FilterChip
-              active={!statusFilter}
-              onClick={() => updateQuery({ status: "", page: 1 })}
+              active={!statusFilter && !archivedFilter}
+              onClick={() => updateQuery({ status: "", archived: "", page: 1 })}
               label="All"
             />
             {STATUS_OPTIONS.map((s) => (
               <FilterChip
                 key={s}
-                active={statusFilter === s}
-                onClick={() => updateQuery({ status: s, page: 1 })}
+                active={statusFilter === s && !archivedFilter}
+                onClick={() =>
+                  updateQuery({ status: s, archived: "", page: 1 })
+                }
                 label={s[0].toUpperCase() + s.slice(1)}
               />
             ))}
+            <FilterChip
+              active={archivedFilter}
+              onClick={() => updateQuery({ status: "", archived: "1", page: 1 })}
+              label="Archived"
+            />
           </div>
         </div>
 
@@ -231,21 +325,89 @@ export default function AdminEnquiries() {
                         {i.job_details}
                       </p>
                     </div>
-                    <div className="sm:col-span-2 flex gap-2 pt-2">
-                      {STATUS_OPTIONS.map((s) => (
+                    <div className="sm:col-span-2 rounded-xl border border-slate-200 bg-white p-4">
+                      <div className="flex items-center gap-2 text-xs uppercase tracking-wide text-slate-500 mb-2">
+                        <StickyNote size={14} className="text-amber-500" />
+                        Admin notes
+                      </div>
+                      <textarea
+                        value={noteDrafts[i.id] ?? ""}
+                        onChange={(e) =>
+                          setNoteDrafts((prev) => ({
+                            ...prev,
+                            [i.id]: e.target.value,
+                          }))
+                        }
+                        maxLength={5000}
+                        placeholder="Add follow-up context, next steps, or owner notes..."
+                        className="w-full min-h-24 rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-800 resize-y focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500 transition-colors"
+                      />
+                      <div className="mt-2 flex items-center justify-between gap-3">
+                        <p className="text-xs text-slate-400">
+                          {(noteDrafts[i.id] ?? "").length}/5000
+                        </p>
                         <button
-                          key={s}
+                          onClick={() => saveNotes(i.id)}
+                          disabled={
+                            savingNotesId === i.id ||
+                            (noteDrafts[i.id] ?? "") === (i.admin_notes ?? "")
+                          }
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-amber-500 text-black hover:bg-amber-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          {savingNotesId === i.id ? (
+                            <Loader2 size={14} className="animate-spin" />
+                          ) : (
+                            <Save size={14} />
+                          )}
+                          Save notes
+                        </button>
+                      </div>
+                    </div>
+                    <div className="sm:col-span-2 flex flex-wrap items-center justify-between gap-3 pt-2">
+                      <div className="flex flex-wrap gap-2">
+                        {STATUS_OPTIONS.map((s) => (
+                          <button
+                            key={s}
                           disabled={updatingId === i.id || i.status === s}
                           onClick={() => updateStatus(i.id, s)}
-                          className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
-                            i.status === s
-                              ? "bg-slate-100 text-slate-400 border-slate-200 cursor-default"
-                              : "bg-white text-slate-700 border-slate-300 hover:border-amber-500 hover:text-amber-600"
-                          }`}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors disabled:cursor-not-allowed ${
+                              i.status === s
+                                ? "bg-slate-100 text-slate-400 border-slate-200 cursor-default"
+                                : "bg-white text-slate-700 border-slate-300 hover:border-amber-500 hover:text-amber-600"
+                            }`}
+                          >
+                            Mark {s}
+                          </button>
+                        ))}
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        <button
+                          onClick={() => toggleArchive(i.id, !i.archived_at)}
+                          disabled={archivingId === i.id}
+                          className="inline-flex cursor-pointer items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border border-slate-300 text-slate-700 hover:border-amber-500 hover:text-amber-600 transition-colors disabled:cursor-not-allowed disabled:opacity-60"
                         >
-                          Mark {s}
+                          {archivingId === i.id ? (
+                            <Loader2 size={14} className="animate-spin" />
+                          ) : i.archived_at ? (
+                            <ArchiveRestore size={14} />
+                          ) : (
+                            <Archive size={14} />
+                          )}
+                          {i.archived_at ? "Restore" : "Archive"}
                         </button>
-                      ))}
+                        <button
+                          onClick={() => deleteEnquiry(i.id)}
+                          disabled={deletingId === i.id}
+                          className="inline-flex cursor-pointer items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border border-red-200 text-red-600 hover:bg-red-50 transition-colors disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                          {deletingId === i.id ? (
+                            <Loader2 size={14} className="animate-spin" />
+                          ) : (
+                            <Trash2 size={14} />
+                          )}
+                          Delete
+                        </button>
+                      </div>
                     </div>
                   </div>
                 )}
