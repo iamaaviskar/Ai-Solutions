@@ -26,12 +26,74 @@ ai-solutions/
 
 ## 1. Database Setup
 
+The project does not use a separate `schema.sql` file. Create the database, then run the SQL below in PostgreSQL.
+
 ```bash
 # Create the database
 psql -U postgres -c "CREATE DATABASE ai_solutions;"
 
-# Run the schema
-psql -U postgres -d ai_solutions -f server/db/schema.sql
+# Open the database shell
+psql -U postgres -d ai_solutions
+```
+
+Paste this SQL into the `psql` shell:
+
+```sql
+CREATE TABLE IF NOT EXISTS admins (
+  id SERIAL PRIMARY KEY,
+  username VARCHAR(100) NOT NULL UNIQUE,
+  password_hash TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS contacts (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  email VARCHAR(255) NOT NULL,
+  phone VARCHAR(50) NOT NULL,
+  company_name VARCHAR(255) NOT NULL,
+  country VARCHAR(100) NOT NULL,
+  job_title VARCHAR(255) NOT NULL,
+  job_details TEXT NOT NULL,
+  status VARCHAR(20) NOT NULL DEFAULT 'new',
+  admin_notes TEXT NOT NULL DEFAULT '',
+  archived_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  CONSTRAINT contacts_status_check
+    CHECK (status IN ('new', 'reviewed', 'responded'))
+);
+
+CREATE INDEX IF NOT EXISTS contacts_status_idx
+  ON contacts(status);
+
+CREATE INDEX IF NOT EXISTS contacts_created_at_idx
+  ON contacts(created_at DESC);
+
+CREATE TABLE IF NOT EXISTS articles (
+  id SERIAL PRIMARY KEY,
+  title VARCHAR(255) NOT NULL,
+  slug VARCHAR(255) NOT NULL UNIQUE,
+  category VARCHAR(100) NOT NULL,
+  excerpt TEXT NOT NULL DEFAULT '',
+  author VARCHAR(255) NOT NULL DEFAULT '',
+  author_role VARCHAR(255) NOT NULL DEFAULT '',
+  read_time VARCHAR(50) NOT NULL DEFAULT '',
+  featured BOOLEAN NOT NULL DEFAULT FALSE,
+  status VARCHAR(20) NOT NULL DEFAULT 'draft',
+  body TEXT NOT NULL DEFAULT '',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  CONSTRAINT articles_status_check
+    CHECK (status IN ('draft', 'published'))
+);
+
+CREATE INDEX IF NOT EXISTS articles_status_idx
+  ON articles(status);
+
+CREATE INDEX IF NOT EXISTS articles_created_at_idx
+  ON articles(created_at DESC);
 ```
 
 ---
@@ -41,23 +103,39 @@ psql -U postgres -d ai_solutions -f server/db/schema.sql
 ```bash
 cd server
 npm install
-cp .env.example .env
-# Edit .env with your DB credentials and secrets
+```
+
+Create a `.env` file inside the `server` folder:
+
+```env
+PORT=5000
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=ai_solutions
+DB_USER=postgres
+DB_PASSWORD=yourpassword
+JWT_SECRET=replace-this-with-a-long-random-secret
+CLIENT_URL=http://localhost:5173
+ADMIN_USERNAME=admin
+ADMIN_PASSWORD=Admin@2025
+GEMINI_API_KEY=your-gemini-api-key
+```
+
+Create the admin account:
+
+```bash
+npm run seed
+```
+
+Then start the API:
+
+```bash
 npm run dev
 ```
 
 The API server runs on **http://localhost:5000**.
 
-**Default Admin Credentials:**
-
-- Username: `admin`
-- Password: `Admin@2025`
-
-The admin account is created automatically when you run `npm run seed`.
-
-```bash
-npm run seed    # creates the admin account
-```
+The admin login uses the `ADMIN_USERNAME` and `ADMIN_PASSWORD` values from `.env`.
 
 ---
 
@@ -112,4 +190,7 @@ DB_USER=postgres
 DB_PASSWORD=yourpassword
 JWT_SECRET=your-super-secret-jwt-key
 CLIENT_URL=http://localhost:5173
+ADMIN_USERNAME=admin
+ADMIN_PASSWORD=Admin@2025
+GEMINI_API_KEY=your-gemini-api-key
 ```
