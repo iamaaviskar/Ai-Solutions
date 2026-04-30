@@ -59,17 +59,24 @@ export default function ArticlePage() {
   const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
-    setLoading(true);
-    setNotFound(false);
+    let active = true;
+
+    queueMicrotask(() => {
+      if (!active) return;
+      setLoading(true);
+      setNotFound(false);
+    });
 
     api
       .get(`/articles/${slug}`)
       .then((res) => {
+        if (!active) return null;
         setArticle(res.data.article);
         // Fetch all articles to build the related list
         return api.get("/articles");
       })
       .then((res) => {
+        if (!active || !res) return;
         const all = res.data.articles;
         const current = all.find((a) => a.slug === slug);
         const sameCategory = all.filter(
@@ -82,9 +89,15 @@ export default function ArticlePage() {
         );
       })
       .catch((err) => {
-        if (err.response?.status === 404) setNotFound(true);
+        if (active && err.response?.status === 404) setNotFound(true);
       })
-      .finally(() => setLoading(false));
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
   }, [slug]);
 
   if (loading) {
@@ -177,15 +190,7 @@ export default function ArticlePage() {
 
           {/* Article body — rendered from Tiptap HTML */}
           <div
-            className="prose prose-slate max-w-none
-              prose-headings:text-[#0C0C0C] prose-headings:font-bold
-              prose-h2:text-xl prose-h2:mt-10 prose-h2:mb-4
-              prose-h3:text-base prose-h3:mt-8 prose-h3:mb-3
-              prose-p:text-slate-600 prose-p:leading-relaxed prose-p:text-[1.0625rem] prose-p:mb-5
-              prose-ul:list-disc prose-ul:ml-4 prose-li:mb-1
-              prose-ol:list-decimal prose-ol:ml-4
-              prose-a:text-amber-600 prose-a:underline hover:prose-a:text-amber-700
-              prose-strong:text-[#0C0C0C]"
+            className="article-body max-w-none"
             dangerouslySetInnerHTML={{ __html: article.body }}
           />
 
